@@ -121,58 +121,41 @@ def show_tracker():
 
 st.set_page_config(page_title="VoyageDeck - AI Travel Planner", page_icon="✈️", layout="centered")
 
-# Global CSS Injection
+# Global CSS Isolation Stylesheet
 st.markdown("""
 <style>
-    /* Force high-contrast background and dark text for all standard Streamlit labels */
+    /* Force high-contrast body canvas */
     .stApp { 
         background: linear-gradient(135deg, #E0F2FE 0%, #F1F5F9 100%) !important; 
     }
     
-    /* Target all input labels, markdown, and text blocks to force dark slate text */
-    .stApp p, .stApp label, .stApp span, .stApp div, [data-testid="stWidgetLabel"] p {
+    /* Target inputs and headers strictly inside the main content area, ignoring the sidebar */
+    [data-testid="stMain"] p, 
+    [data-testid="stMain"] label, 
+    [data-testid="stMain"] span,
+    [data-testid="stWidgetLabel"] p {
         color: #1E293B !important;
         font-weight: 500 !important;
     }
     
-    /* Maintain clean white text inside your specific blue info box */
+    /* Re-stabilize internal layout alert boxes text color */
     .stAlert p {
         color: #0369A1 !important;
     }
 
-    /* 3D Tactile Button Styles */
+    /* 3D Tactile Button System */
     .stButton > button {
         background: linear-gradient(135deg, #0EA5E9 0%, #0369A1 100%) !important;
         color: #FFFFFF !important;
-        font-weight: 800 !important;
-        font-size: 16px !important;
-        text-transform: uppercase !important;
-        border: none !important;
-        border-radius: 14px !important;
-        padding: 14px 28px !important;
-        box-shadow: 0px 6px 0px #01476C !important; 
-        transition: transform 0.08s ease, box-shadow 0.08s ease !important;
-        cursor: pointer !important;
-        width: 100%;
+        font-weight: 800 !important; font-size: 16px !important; text-transform: uppercase !important;
+        border: none !important; border-radius: 14px !important; padding: 14px 28px !important;
+        box-shadow: 0px 6px 0px #01476C !important; transition: transform 0.08s ease, box-shadow 0.08s ease !important; cursor: pointer !important; width: 100%;
     }
-    .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0px 8px 0px #01476C !important;
-    }
-    .stButton > button:active {
-        transform: translateY(6px) !important;
-        box-shadow: 0px 0px 0px #01476C !important;
-    }
-
-    /* Input Grid Cards */
-    .travel-card {
-        background: #FFFFFF;
-        padding: 20px;
-        border-radius: 16px;
-        box-shadow: 0px 4px 0px #E2E8F0;
-        border: 2px solid #E2E8F0;
-        margin-bottom: 15px;
-    }
+    .stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0px 8px 0px #01476C !important; }
+    .stButton > button:active { transform: translateY(6px) !important; box-shadow: 0px 0px 0px #01476C !important; }
+    
+    /* Form Option Container Display Cards */
+    .travel-card { background: #FFFFFF; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 0px #E2E8F0; border: 2px solid #E2E8F0; margin-bottom: 15px; }
 </style>
 """, unsafe_allow_html=True)
 
