@@ -8,7 +8,7 @@ def show_home():
     st.markdown("<p style='text-align: center; color: #94A3B8; font-size:16px; font-weight: 500; margin-top:5px;'>Maximizing experiences while minimizing expenses</p>", unsafe_allow_html=True)
     st.write("")
 
-    destination = st.text_input("📍 Where are we going?", placeholder="e.g., Goa, Tokyo, Paris...", key="input_dest")
+    destination = st.text_input("📍 Where are we going?", placeholder="e.g., Goa, Varanasi, Mumbai...", key="input_dest")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -26,8 +26,8 @@ def show_home():
         st.info("💡 **Flashpacker Profile:** Affordable comfort mode. Allows for private hostel rooms, casual dining, and entry to major iconic landmarks.")
         execution_constraint = "Affordable comfort mode: private hostel rooms, casual dining, entry to major landmarks."
     else:
-        custom_val = st.text_input("Specify your exact budget ceiling:", placeholder="e.g., Rs. 5000 max...", key="input_custom")
-        execution_constraint = f"Strict custom constraint limit: {custom_val}"
+        custom_val = st.text_input("Specify your exact budget ceiling (in ₹):", placeholder="e.g., 5000...", key="input_custom")
+        execution_constraint = f"Strict custom constraint limit: Rs. {custom_val}"
 
     st.markdown("<h3 style='color: #00F0FF;'>🛠️ Tailor Your Adventure Options</h3>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
@@ -38,7 +38,7 @@ def show_home():
         st.markdown('<div class="travel-card">', unsafe_allow_html=True)
         want_stay = st.checkbox("🛌 Low-cost Student Hostels", value=True, key="feat_stay")
         st.markdown('</div>', unsafe_allow_html=True)
-    with c2:
+with c2:
         st.markdown('<div class="travel-card">', unsafe_allow_html=True)
         want_spots = st.checkbox("🏛️ Free Attractions", value=True, key="feat_spots")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -82,130 +82,4 @@ def show_itinerary():
     
     if st.button("🧠 COMPUTE ITINERARY"):
         with st.spinner("VoyageDeck routing via lightning-fast Groq Cloud..."):
-            API_URL = "https://api.groq.com/openai/v1/chat/completions"
-            headers = {
-                "Authorization": f"Bearer {st.secrets['GROQ_API_KEY']}",
-                "Content-Type": "application/json"
-            }
-            
-            payload = {
-                "model": "llama-3.1-8b-instant",
-                "messages": [
-                    {"role": "system", "content": "You are VoyageDeck, an expert student travel guide. Provide highly realistic itineraries with markdown emoji bullets."},
-                    {"role": "user", "content": f"Create a day-by-day itinerary for a student trip to {dest} for {days} days. Budget Profile: {constraint}. Priority Focus Elements: {feats}. Format clearly using headings for Day 1, Day 2, etc."}
-                ],
-                "temperature": 0.7,
-                "max_tokens": 1200
-            }
-            
-            try:
-                response = requests.post(API_URL, json=payload, headers=headers, timeout=20)
-                
-                if response.status_code == 429:
-                    st.error("🚦 Rate limit hit. Please wait a minute before making another request.")
-                    return
-                elif response.status_code != 200:
-                    st.error(f"⚠️ Groq API Error: Status {response.status_code}.")
-                    return
-
-                raw_output = response.json()
-                clean_itinerary = raw_output['choices'][0]['message']['content']
-                st.markdown("<h3 style='color: #00F0FF;'>🗺️ Your Personalized Deck</h3>", unsafe_allow_html=True)
-                st.markdown(clean_itinerary)
-                
-            except requests.exceptions.Timeout:
-                st.error("⌛ Request timed out. Groq cloud infrastructure is experiencing brief delays.")
-            except Exception as e:
-                st.error(f"Interface Error: {str(e)}")
-
-
-def show_tracker():
-    st.markdown("<h1 style='color: #00F0FF;'>💰 Smart Expense Calculator</h1>", unsafe_allow_html=True)
-    dest = st.session_state.get('destination', 'Your Destination')
-    days = st.session_state.get('duration', 3)
-
-    st.markdown(f"<h3 style='color: #FFFFFF;'>📊 Outlay Projections for {dest} ({days} Days)</h3>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-    with col1:
-        stay_cost = st.number_input("Stay per night:", min_value=0, value=15)
-        food_cost = st.number_input("Food allocation per day:", min_value=0, value=10)
-    with col2:
-        transit_cost = st.number_input("Local transit per day:", min_value=0, value=5)
-        misc_cost = st.number_input("Emergency fund:", min_value=0, value=20)
-
-    total_stay = stay_cost * (days - 1 if days > 1 else 1)
-    total_daily = (food_cost + transit_cost) * days
-    grand_total = total_stay + total_daily + misc_cost
-
-    st.markdown("---")
-    st.metric(label="Estimated Grand Total Outlay", value=f"{grand_total}")
-
-
-# 2. --- ROUTING & NAVIGATION ENGINE ---
-
-st.set_page_config(page_title="VoyageDeck - AI Travel Planner", page_icon="✈️", layout="centered")
-
-# Global High-Contrast Turquoise-Black Interface Overhaul
-st.markdown("""
-<style>
-    /* Dark Theme Canvas Override */
-    .stApp { 
-        background: #0B0F19 !important; 
-    }
-    
-    /* Force crisp white text visibility across all structural elements & markdown lists */
-    [data-testid="stMain"] p, 
-    [data-testid="stMain"] label, 
-    [data-testid="stMain"] span, 
-    [data-testid="stMain"] li,
-    [data-testid="stWidgetLabel"] p {
-        color: #FFFFFF !important;
-        font-weight: 500 !important;
-    }
-    
-    /* Enforce Turquoise accents on specific subheaders */
-    [data-testid="stMain"] h1, [data-testid="stMain"] h2, [data-testid="stMain"] h3 {
-        color: #00F0FF !important;
-    }
-    
-    /* Clean text styling inside alerts */
-    .stAlert p {
-        color: #00F0FF !important;
-    }
-
-    /* Tactile Turquoise Neon Buttons */
-    .stButton > button {
-        background: linear-gradient(135deg, #00F0FF 0%, #007799 100%) !important;
-        color: #0B0F19 !important;
-        font-weight: 800 !important;
-        font-size: 16px !important;
-        text-transform: uppercase !important;
-        border: none !important;
-        border-radius: 14px !important;
-        padding: 14px 28px !important;
-        box-shadow: 0px 6px 0px #004455 !important;
-        transition: transform 0.08s ease, box-shadow 0.08s ease !important;
-        cursor: pointer !important;
-        width: 100%;
-    }
-    .stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0px 8px 0px #004455 !important; }
-    .stButton > button:active { transform: translateY(6px) !important; box-shadow: 0px 0px 0px #004455 !important; }
-    
-    /* Slate Container Cards for form segmentation */
-    .travel-card {
-        background: #1E293B;
-        padding: 20px;
-        border-radius: 16px;
-        box-shadow: 0px 4px 0px #0F172A;
-        border: 2px solid #334155;
-        margin-bottom: 15px;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-page_home = st.Page(show_home, title="Home", icon="✈️", default=True)
-page_itinerary = st.Page(show_itinerary, title="Itinerary", icon="⏳")
-page_tracker = st.Page(show_tracker, title="Budget Tracker", icon="💰")
-
-pg = st.navigation([page_home, page_itinerary, page_tracker])
-pg.run()
+            API_URL = "
