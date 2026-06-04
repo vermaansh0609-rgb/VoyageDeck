@@ -69,6 +69,11 @@ def show_itinerary():
         st.warning("Please configure your travel parameters on the Home page first!")
         return
 
+    # Check if user set up secrets properly
+    if "GROQ_API_KEY" not in st.secrets:
+        st.error("Missing API Key! Please add 'GROQ_API_KEY' to your Streamlit app secrets.")
+        return
+
     dest = st.session_state['destination']
     days = st.session_state['duration']
     constraint = st.session_state['constraint']
@@ -77,32 +82,40 @@ def show_itinerary():
     st.write(f"📊 **Target Routing:** {dest} | **Duration:** {days} Days")
     
     if st.button("🧠 COMPUTE ITINERARY"):
-        with st.spinner("VoyageDeck routing via serverless AI cloud..."):
-            API_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-1.5B-Instruct"
-            prompt = f"<|im_start|>system\nYou are VoyageDeck, an expert student travel guide. Provide highly realistic itineraries with markdown emoji bullets.<|im_end|>\n<|im_start|>user\nCreate a day-by-day itinerary for a student trip to {dest} for {days} days. Budget Profile: {constraint}. Priority Focus Elements: {feats}. Format clearly using headings for Day 1, Day 2, etc.<|im_end|>\n<|im_start|>assistant\n"
+        with st.spinner("VoyageDeck routing via lightning-fast Groq Cloud..."):
+            API_URL = "https://api.groq.com/openai/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {st.secrets['GROQ_API_KEY']}",
+                "Content-Type": "application/json"
+            }
+            
+            payload = {
+                "model": "llama3-8b-8192",
+                "messages": [
+                    {"role": "system", "content": "You are VoyageDeck, an expert student travel guide. Provide highly realistic itineraries with markdown emoji bullets."},
+                    {"role": "user", "content": f"Create a day-by-day itinerary for a student trip to {dest} for {days} days. Budget Profile: {constraint}. Priority Focus Elements: {feats}. Format clearly using headings for Day 1, Day 2, etc."}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 1200
+            }
             
             try:
-                response = requests.post(API_URL, json={"inputs": prompt, "parameters": {"max_new_tokens": 700, "temperature": 0.7}}, timeout=30)
+                response = requests.post(API_URL, json=payload, headers=headers, timeout=20)
                 
-                if response.status_code == 503:
-                    st.warning("🔄 The AI engine is currently waking up on the cloud server. Please wait 15 seconds and click the button again.")
+                if response.status_code == 429:
+                    st.error("🚦 Rate limit hit. Please wait a minute before making another request.")
                     return
                 elif response.status_code != 200:
-                    st.error(f"⚠️ Cloud Server Error (Status {response.status_code}). Please re-try in a moment.")
+                    st.error(f"⚠️ Groq API Error: Status {response.status_code}. Verify your API key.")
                     return
 
                 raw_output = response.json()
+                clean_itinerary = raw_output['choices'][0]['message']['content']
+                st.markdown("### 🗺️ Your Personalized Deck")
+                st.markdown(clean_itinerary)
                 
-                if isinstance(raw_output, list) and 'generated_text' in raw_output[0]:
-                    clean_itinerary = raw_output[0]['generated_text'].split("<|im_start|>assistant\n")[-1]
-                    st.markdown("### 🗺️ Your Personalized Deck")
-                    st.markdown(clean_itinerary)
-                elif isinstance(raw_output, dict) and "estimated_time" in raw_output:
-                    st.info(f"🔄 Model loading. Server estimated boot time: {int(raw_output['estimated_time'])} seconds. Please try again shortly.")
-                else:
-                    st.error("Unexpected server response format. Please try again.")
             except requests.exceptions.Timeout:
-                st.error("⌛ Request timed out. Cloud servers are heavily loaded. Please click again.")
+                st.error("⌛ Request timed out. Groq cloud infrastructure is experiencing brief delays.")
             except Exception as e:
                 st.error(f"Interface Error: {str(e)}")
 
@@ -136,32 +149,19 @@ st.set_page_config(page_title="VoyageDeck - AI Travel Planner", page_icon="✈�
 # Global CSS Isolation Stylesheet
 st.markdown("""
 <style>
-    .stApp { 
-        background: linear-gradient(135deg, #E0F2FE 0%, #F1F5F9 100%) !important; 
+    .stApp { background: linear-gradient(135deg, #E0F2FE 0%, #F1F5F9 100%) !important; }
+    [data-testid="stMain"] p, [data-testid="stMain"] label, [data-testid="stMain"] span, [data-testid="stWidgetLabel"] p {
+        color: #1E293B !important; font-weight: 500 !important;
     }
-    
-    [data-testid="stMain"] p, 
-    [data-testid="stMain"] label, 
-    [data-testid="stMain"] span,
-    [data-testid="stWidgetLabel"] p {
-        color: #1E293B !important;
-        font-weight: 500 !important;
-    }
-    
-    .stAlert p {
-        color: #0369A1 !important;
-    }
-
+    .stAlert p { color: #0369A1 !important; }
     .stButton > button {
         background: linear-gradient(135deg, #0EA5E9 0%, #0369A1 100%) !important;
-        color: #FFFFFF !important;
-        font-weight: 800 !important; font-size: 16px !important; text-transform: uppercase !important;
+        color: #FFFFFF !important; font-weight: 800 !important; font-weight: 800 !important; font-size: 16px !important; text-transform: uppercase !important;
         border: none !important; border-radius: 14px !important; padding: 14px 28px !important;
         box-shadow: 0px 6px 0px #01476C !important; transition: transform 0.08s ease, box-shadow 0.08s ease !important; cursor: pointer !important; width: 100%;
     }
     .stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0px 8px 0px #01476C !important; }
     .stButton > button:active { transform: translateY(6px) !important; box-shadow: 0px 0px 0px #01476C !important; }
-    
     .travel-card { background: #FFFFFF; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 0px #E2E8F0; border: 2px solid #E2E8F0; margin-bottom: 15px; }
 </style>
 """, unsafe_allow_html=True)
