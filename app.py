@@ -80,3 +80,95 @@ def show_itinerary():
         with st.spinner("VoyageDeck routing via serverless AI cloud..."):
             API_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-1.5B-Instruct"
             prompt = f"<|im_start|>system\nYou are VoyageDeck, an expert student travel guide. Provide highly realistic itineraries with markdown emoji bullets.<|im_end|>\n<|im_start|>user\nCreate a day-by-day itinerary for a student trip to {dest} for {days} days. Budget Profile: {constraint}. Priority Focus Elements: {feats}. Format clearly using headings for Day 1, Day 2, etc.<|im_end|>\n<|im_start|>assistant\n"
+            
+            try:
+                response = requests.post(API_URL, json={"inputs": prompt, "parameters": {"max_new_tokens": 700, "temperature": 0.7}}, timeout=30)
+                
+                if response.status_code == 503:
+                    st.warning("🔄 The AI engine is currently waking up on the cloud server. Please wait 15 seconds and click the button again.")
+                    return
+                elif response.status_code != 200:
+                    st.error(f"⚠️ Cloud Server Error (Status {response.status_code}). Please re-try in a moment.")
+                    return
+
+                raw_output = response.json()
+                
+                if isinstance(raw_output, list) and 'generated_text' in raw_output[0]:
+                    clean_itinerary = raw_output[0]['generated_text'].split("<|im_start|>assistant\n")[-1]
+                    st.markdown("### 🗺️ Your Personalized Deck")
+                    st.markdown(clean_itinerary)
+                elif isinstance(raw_output, dict) and "estimated_time" in raw_output:
+                    st.info(f"🔄 Model loading. Server estimated boot time: {int(raw_output['estimated_time'])} seconds. Please try again shortly.")
+                else:
+                    st.error("Unexpected server response format. Please try again.")
+            except requests.exceptions.Timeout:
+                st.error("⌛ Request timed out. Cloud servers are heavily loaded. Please click again.")
+            except Exception as e:
+                st.error(f"Interface Error: {str(e)}")
+
+
+def show_tracker():
+    st.title("💰 Smart Expense Calculator")
+    dest = st.session_state.get('destination', 'Your Destination')
+    days = st.session_state.get('duration', 3)
+
+    st.subheader(f"📊 Outlay Projections for {dest} ({days} Days)")
+    col1, col2 = st.columns(2)
+    with col1:
+        stay_cost = st.number_input("Stay per night:", min_value=0, value=15)
+        food_cost = st.number_input("Food allocation per day:", min_value=0, value=10)
+    with col2:
+        transit_cost = st.number_input("Local transit per day:", min_value=0, value=5)
+        misc_cost = st.number_input("Emergency fund:", min_value=0, value=20)
+
+    total_stay = stay_cost * (days - 1 if days > 1 else 1)
+    total_daily = (food_cost + transit_cost) * days
+    grand_total = total_stay + total_daily + misc_cost
+
+    st.markdown("---")
+    st.metric(label="Estimated Grand Total Outlay", value=f"{grand_total}")
+
+
+# 2. --- ROUTING & NAVIGATION ENGINE ---
+
+st.set_page_config(page_title="VoyageDeck - AI Travel Planner", page_icon="✈️", layout="centered")
+
+# Global CSS Isolation Stylesheet
+st.markdown("""
+<style>
+    .stApp { 
+        background: linear-gradient(135deg, #E0F2FE 0%, #F1F5F9 100%) !important; 
+    }
+    
+    [data-testid="stMain"] p, 
+    [data-testid="stMain"] label, 
+    [data-testid="stMain"] span,
+    [data-testid="stWidgetLabel"] p {
+        color: #1E293B !important;
+        font-weight: 500 !important;
+    }
+    
+    .stAlert p {
+        color: #0369A1 !important;
+    }
+
+    .stButton > button {
+        background: linear-gradient(135deg, #0EA5E9 0%, #0369A1 100%) !important;
+        color: #FFFFFF !important;
+        font-weight: 800 !important; font-size: 16px !important; text-transform: uppercase !important;
+        border: none !important; border-radius: 14px !important; padding: 14px 28px !important;
+        box-shadow: 0px 6px 0px #01476C !important; transition: transform 0.08s ease, box-shadow 0.08s ease !important; cursor: pointer !important; width: 100%;
+    }
+    .stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0px 8px 0px #01476C !important; }
+    .stButton > button:active { transform: translateY(6px) !important; box-shadow: 0px 0px 0px #01476C !important; }
+    
+    .travel-card { background: #FFFFFF; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 0px #E2E8F0; border: 2px solid #E2E8F0; margin-bottom: 15px; }
+</style>
+""", unsafe_allow_html=True)
+
+page_home = st.Page(show_home, title="Home", icon="✈️", default=True)
+page_itinerary = st.Page(show_itinerary, title="Itinerary", icon="⏳")
+page_tracker = st.Page(show_tracker, title="Budget Tracker", icon="💰")
+
+pg = st.navigation([page_home, page_itinerary, page_tracker])
+pg.run()
