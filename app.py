@@ -4,8 +4,8 @@ import requests
 # 1. --- PAGE FUNCTIONS ---
 
 def show_home():
-    st.markdown("<h1 style='text-align: center; color: #0369A1; margin-bottom:0;'>✈️ VoyageDeck</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #64748B; font-size:16px; font-weight: 500; margin-top:5px;'>Maximizing experiences while minimizing expenses</p>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #00F0FF; margin-bottom:0;'>✈️ VoyageDeck</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #94A3B8; font-size:16px; font-weight: 500; margin-top:5px;'>Maximizing experiences while minimizing expenses</p>", unsafe_allow_html=True)
     st.write("")
 
     destination = st.text_input("📍 Where are we going?", placeholder="e.g., Goa, Tokyo, Paris...", key="input_dest")
@@ -29,7 +29,7 @@ def show_home():
         custom_val = st.text_input("Specify your exact budget ceiling:", placeholder="e.g., Rs. 5000 max...", key="input_custom")
         execution_constraint = f"Strict custom constraint limit: {custom_val}"
 
-    st.markdown("### 🛠️ Tailor Your Adventure Options")
+    st.markdown("<h3 style='color: #00F0FF;'>🛠️ Tailor Your Adventure Options</h3>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
         st.markdown('<div class="travel-card">', unsafe_allow_html=True)
@@ -64,12 +64,11 @@ def show_home():
 
 
 def show_itinerary():
-    st.title("⏳ AI Itinerary Generator")
+    st.markdown("<h1 style='color: #00F0FF;'>⏳ AI Itinerary Generator</h1>", unsafe_allow_html=True)
     if 'destination' not in st.session_state:
         st.warning("Please configure your travel parameters on the Home page first!")
         return
 
-    # Verifying secret configurations inside the Streamlit instance Dashboard
     if "GROQ_API_KEY" not in st.secrets:
         st.error("Missing API Key! Please add 'GROQ_API_KEY' to your Streamlit app secrets.")
         return
@@ -106,12 +105,12 @@ def show_itinerary():
                     st.error("🚦 Rate limit hit. Please wait a minute before making another request.")
                     return
                 elif response.status_code != 200:
-                    st.error(f"⚠️ Groq API Error: Status {response.status_code}. Verify your API key.")
+                    st.error(f"⚠️ Groq API Error: Status {response.status_code}.")
                     return
 
                 raw_output = response.json()
                 clean_itinerary = raw_output['choices'][0]['message']['content']
-                st.markdown("### 🗺️ Your Personalized Deck")
+                st.markdown("<h3 style='color: #00F0FF;'>🗺️ Your Personalized Deck</h3>", unsafe_allow_html=True)
                 st.markdown(clean_itinerary)
                 
             except requests.exceptions.Timeout:
@@ -121,11 +120,11 @@ def show_itinerary():
 
 
 def show_tracker():
-    st.title("💰 Smart Expense Calculator")
+    st.markdown("<h1 style='color: #00F0FF;'>💰 Smart Expense Calculator</h1>", unsafe_allow_html=True)
     dest = st.session_state.get('destination', 'Your Destination')
     days = st.session_state.get('duration', 3)
 
-    st.subheader(f"📊 Outlay Projections for {dest} ({days} Days)")
+    st.markdown(f"<h3 style='color: #FFFFFF;'>📊 Outlay Projections for {dest} ({days} Days)</h3>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         stay_cost = st.number_input("Stay per night:", min_value=0, value=15)
@@ -146,23 +145,61 @@ def show_tracker():
 
 st.set_page_config(page_title="VoyageDeck - AI Travel Planner", page_icon="✈️", layout="centered")
 
-# Global CSS Isolation Stylesheet
+# Global High-Contrast Turquoise-Black Interface Overhaul
 st.markdown("""
 <style>
-    .stApp { background: linear-gradient(135deg, #E0F2FE 0%, #F1F5F9 100%) !important; }
-    [data-testid="stMain"] p, [data-testid="stMain"] label, [data-testid="stMain"] span, [data-testid="stWidgetLabel"] p {
-        color: #1E293B !important; font-weight: 500 !important;
+    /* Dark Theme Canvas Override */
+    .stApp { 
+        background: #0B0F19 !important; 
     }
-    .stAlert p { color: #0369A1 !important; }
+    
+    /* Force crisp white text visibility across all structural elements & markdown lists */
+    [data-testid="stMain"] p, 
+    [data-testid="stMain"] label, 
+    [data-testid="stMain"] span, 
+    [data-testid="stMain"] li,
+    [data-testid="stWidgetLabel"] p {
+        color: #FFFFFF !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Enforce Turquoise accents on specific subheaders */
+    [data-testid="stMain"] h1, [data-testid="stMain"] h2, [data-testid="stMain"] h3 {
+        color: #00F0FF !important;
+    }
+    
+    /* Clean text styling inside alerts */
+    .stAlert p {
+        color: #00F0FF !important;
+    }
+
+    /* Tactile Turquoise Neon Buttons */
     .stButton > button {
-        background: linear-gradient(135deg, #0EA5E9 0%, #0369A1 100%) !important;
-        color: #FFFFFF !important; font-weight: 800 !important; font-size: 16px !important; text-transform: uppercase !important;
-        border: none !important; border-radius: 14px !important; padding: 14px 28px !important;
-        box-shadow: 0px 6px 0px #01476C !important; transition: transform 0.08s ease, box-shadow 0.08s ease !important; cursor: pointer !important; width: 100%;
+        background: linear-gradient(135deg, #00F0FF 0%, #007799 100%) !important;
+        color: #0B0F19 !important;
+        font-weight: 800 !important;
+        font-size: 16px !important;
+        text-transform: uppercase !important;
+        border: none !important;
+        border-radius: 14px !important;
+        padding: 14px 28px !important;
+        box-shadow: 0px 6px 0px #004455 !important;
+        transition: transform 0.08s ease, box-shadow 0.08s ease !important;
+        cursor: pointer !important;
+        width: 100%;
     }
-    .stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0px 8px 0px #01476C !important; }
-    .stButton > button:active { transform: translateY(6px) !important; box-shadow: 0px 0px 0px #01476C !important; }
-    .travel-card { background: #FFFFFF; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 0px #E2E8F0; border: 2px solid #E2E8F0; margin-bottom: 15px; }
+    .stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0px 8px 0px #004455 !important; }
+    .stButton > button:active { transform: translateY(6px) !important; box-shadow: 0px 0px 0px #004455 !important; }
+    
+    /* Slate Container Cards for form segmentation */
+    .travel-card {
+        background: #1E293B;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0px 4px 0px #0F172A;
+        border: 2px solid #334155;
+        margin-bottom: 15px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
