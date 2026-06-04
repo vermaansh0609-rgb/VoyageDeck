@@ -110,4 +110,96 @@ def show_itinerary():
 
                 raw_output = response.json()
                 clean_itinerary = raw_output['choices'][0]['message']['content']
-                st.markdown("<h3 style='color: #00F0FF;'>🗺️ Your Personalized
+                st.markdown("<h3 style='color: #00F0FF;'>🗺️ Your Personalized Deck</h3>", unsafe_allow_html=True)
+                st.markdown(clean_itinerary)
+                
+            except requests.exceptions.Timeout:
+                st.error("⌛ Request timed out. Groq cloud infrastructure is experiencing brief delays.")
+            except Exception as e:
+                st.error(f"Interface Error: {str(e)}")
+
+
+def show_tracker():
+    st.markdown("<h1 style='color: #00F0FF;'>💰 Smart Expense Calculator</h1>", unsafe_allow_html=True)
+    dest = st.session_state.get('destination', 'Your Destination')
+    days = st.session_state.get('duration', 3)
+
+    st.markdown(f"<h3 style='color: #FFFFFF;'>📊 Estimated Costs for {dest} ({days} Days)</h3>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        stay_cost = st.number_input("Hotel / Hostel Room (Price per night in ₹):", min_value=0, value=600, step=50)
+        food_cost = st.number_input("Food & Drinks (Daily allowance in ₹):", min_value=0, value=400, step=50)
+    with col2:
+        transit_cost = st.number_input("Local Auto / Bus / Metro (Daily budget in ₹):", min_value=0, value=200, step=20)
+        misc_cost = st.number_input("Shopping & Emergency Cash (Total backup in ₹):", min_value=0, value=1000, step=100)
+
+    total_stay = stay_cost * (days - 1 if days > 1 else 1)
+    total_daily_expenses = (food_cost + transit_cost) * days
+    grand_total = total_stay + total_daily_expenses + misc_cost
+
+    st.markdown("---")
+    st.metric(label="Estimated Grand Total Outlay (₹)", value=f"₹ {grand_total:,}")
+
+
+# 2. --- ROUTING & NAVIGATION ENGINE ---
+
+st.set_page_config(page_title="VoyageDeck - AI Travel Planner", page_icon="✈️", layout="centered")
+
+st.markdown("""
+<style>
+    .stApp { 
+        background: #0B0F19 !important; 
+    }
+    
+    [data-testid="stMain"] p, 
+    [data-testid="stMain"] label, 
+    [data-testid="stMain"] span, 
+    [data-testid="stMain"] li,
+    [data-testid="stWidgetLabel"] p {
+        color: #FFFFFF !important;
+        font-weight: 500 !important;
+    }
+    
+    [data-testid="stMain"] h1, [data-testid="stMain"] h2, [data-testid="stMain"] h3 {
+        color: #00F0FF !important;
+    }
+    
+    .stAlert p {
+        color: #00F0FF !important;
+    }
+
+    .stButton > button {
+        background: linear-gradient(135deg, #00F0FF 0%, #007799 100%) !important;
+        color: #0B0F19 !important;
+        font-weight: 800 !important;
+        font-size: 16px !important;
+        text-transform: uppercase !important;
+        border: none !important;
+        border-radius: 14px !important;
+        padding: 14px 28px !important;
+        box-shadow: 0px 6px 0px #004455 !important;
+        transition: transform 0.08s ease, box-shadow 0.08s ease !important;
+        cursor: pointer !important;
+        width: 100%;
+    }
+    .stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0px 8px 0px #004455 !important; }
+    .stButton > button:active { transform: translateY(6px) !important; box-shadow: 0px 0px 0px #004455 !important; }
+    
+    .travel-card {
+        background: #1E293B;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0px 4px 0px #0F172A;
+        border: 2px solid #334155;
+        margin-bottom: 15px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+page_home = st.Page(show_home, title="Home", icon="✈️", default=True)
+page_itinerary = st.Page(show_itinerary, title="Itinerary", icon="⏳")
+page_tracker = st.Page(show_tracker, title="Budget Tracker", icon="💰")
+
+pg = st.navigation([page_home, page_itinerary, page_tracker])
+pg.run()
