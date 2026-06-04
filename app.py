@@ -69,7 +69,7 @@ def show_itinerary():
         st.warning("Please configure your travel parameters on the Home page first!")
         return
 
-    # Check if user set up secrets properly
+    # Verifying secret configurations inside the Streamlit instance Dashboard
     if "GROQ_API_KEY" not in st.secrets:
         st.error("Missing API Key! Please add 'GROQ_API_KEY' to your Streamlit app secrets.")
         return
@@ -90,7 +90,7 @@ def show_itinerary():
             }
             
             payload = {
-                "model": "llama3-8b-8192",
+                "model": "llama-3.1-8b-instant",
                 "messages": [
                     {"role": "system", "content": "You are VoyageDeck, an expert student travel guide. Provide highly realistic itineraries with markdown emoji bullets."},
                     {"role": "user", "content": f"Create a day-by-day itinerary for a student trip to {dest} for {days} days. Budget Profile: {constraint}. Priority Focus Elements: {feats}. Format clearly using headings for Day 1, Day 2, etc."}
@@ -156,7 +156,7 @@ st.markdown("""
     .stAlert p { color: #0369A1 !important; }
     .stButton > button {
         background: linear-gradient(135deg, #0EA5E9 0%, #0369A1 100%) !important;
-        color: #FFFFFF !important; font-weight: 800 !important; font-weight: 800 !important; font-size: 16px !important; text-transform: uppercase !important;
+        color: #FFFFFF !important; font-weight: 800 !important; font-size: 16px !important; text-transform: uppercase !important;
         border: none !important; border-radius: 14px !important; padding: 14px 28px !important;
         box-shadow: 0px 6px 0px #01476C !important; transition: transform 0.08s ease, box-shadow 0.08s ease !important; cursor: pointer !important; width: 100%;
     }
