@@ -27,7 +27,7 @@ def show_home():
         execution_constraint = "Affordable comfort mode: private hostel rooms, casual dining, entry to major landmarks."
     else:
         custom_val = st.text_input("Specify your exact budget ceiling (in ₹):", placeholder="e.g., 5000...", key="input_custom")
-        execution_constraint = f"Strict custom constraint limit: Rs. {custom_val}"
+        execution_constraint = f"Strict custom constraint limit: {custom_val}"
 
     st.markdown("<h3 style='color: #00F0FF;'>🛠️ Tailor Your Adventure Options</h3>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
@@ -38,7 +38,7 @@ def show_home():
         st.markdown('<div class="travel-card">', unsafe_allow_html=True)
         want_stay = st.checkbox("🛌 Low-cost Student Hostels", value=True, key="feat_stay")
         st.markdown('</div>', unsafe_allow_html=True)
-with c2:
+    with c2:
         st.markdown('<div class="travel-card">', unsafe_allow_html=True)
         want_spots = st.checkbox("🏛️ Free Attractions", value=True, key="feat_spots")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -82,4 +82,53 @@ def show_itinerary():
     
     if st.button("🧠 COMPUTE ITINERARY"):
         with st.spinner("VoyageDeck routing via lightning-fast Groq Cloud..."):
-            API_URL = "
+            API_URL = "https://api.groq.com/openai/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {st.secrets['GROQ_API_KEY']}",
+                "Content-Type": "application/json"
+            }
+            
+            payload = {
+                "model": "llama-3.1-8b-instant",
+                "messages": [
+                    {"role": "system", "content": "You are VoyageDeck, an expert student travel guide. Provide highly realistic itineraries with markdown emoji bullets. All pricing references must be in Indian Rupees (₹)."},
+                    {"role": "user", "content": f"Create a day-by-day itinerary for a student trip to {dest} for {days} days. Budget Profile: {constraint}. Priority Focus Elements: {feats}. Format clearly using headings for Day 1, Day 2, etc. Include realistic cost estimates in INR (₹)."}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 1200
+            }
+            
+            try:
+                response = requests.post(API_URL, json=payload, headers=headers, timeout=20)
+                
+                if response.status_code == 429:
+                    st.error("🚦 Rate limit hit. Please wait a minute before making another request.")
+                    return
+                elif response.status_code != 200:
+                    st.error(f"⚠️ Groq API Error: Status {response.status_code}.")
+                    return
+
+                raw_output = response.json()
+                clean_itinerary = raw_output['choices'][0]['message']['content']
+                st.markdown("<h3 style='color: #00F0FF;'>🗺️ Your Personalized Deck</h3>", unsafe_allow_html=True)
+                st.markdown(clean_itinerary)
+                
+            except requests.exceptions.Timeout:
+                st.error("⌛ Request timed out. Groq cloud infrastructure is experiencing brief delays.")
+            except Exception as e:
+                st.error(f"Interface Error: {str(e)}")
+
+
+def show_tracker():
+    st.markdown("<h1 style='color: #00F0FF;'>💰 Smart Expense Calculator</h1>", unsafe_allow_html=True)
+    dest = st.session_state.get('destination', 'Your Destination')
+    days = st.session_state.get('duration', 3)
+
+    st.markdown(f"<h3 style='color: #FFFFFF;'>📊 Estimated Costs for {dest} ({days} Days)</h3>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        stay_cost = st.number_input("Hotel / Hostel Room (Price per night in ₹):", min_value=0, value=600, step=50)
+        food_cost = st.number_input("Food & Drinks (Daily allowance in ₹):", min_value=0, value=400, step=50)
+    with col2:
+        transit_cost = st.number_input
