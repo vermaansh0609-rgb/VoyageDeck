@@ -110,25 +110,4 @@ def show_itinerary():
 
                 raw_output = response.json()
                 clean_itinerary = raw_output['choices'][0]['message']['content']
-                st.markdown("<h3 style='color: #00F0FF;'>🗺️ Your Personalized Deck</h3>", unsafe_allow_html=True)
-                st.markdown(clean_itinerary)
-                
-            except requests.exceptions.Timeout:
-                st.error("⌛ Request timed out. Groq cloud infrastructure is experiencing brief delays.")
-            except Exception as e:
-                st.error(f"Interface Error: {str(e)}")
-
-
-def show_tracker():
-    st.markdown("<h1 style='color: #00F0FF;'>💰 Smart Expense Calculator</h1>", unsafe_allow_html=True)
-    dest = st.session_state.get('destination', 'Your Destination')
-    days = st.session_state.get('duration', 3)
-
-    st.markdown(f"<h3 style='color: #FFFFFF;'>📊 Estimated Costs for {dest} ({days} Days)</h3>", unsafe_allow_html=True)
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        stay_cost = st.number_input("Hotel / Hostel Room (Price per night in ₹):", min_value=0, value=600, step=50)
-        food_cost = st.number_input("Food & Drinks (Daily allowance in ₹):", min_value=0, value=400, step=50)
-    with col2:
-        transit_cost = st.number_input
+                st.markdown("<h3 style='color: #00F0FF;'>🗺️ Your Personalized
